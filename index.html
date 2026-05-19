@@ -77,11 +77,17 @@ var db = firebase.firestore();
 // ===== ESTADO LOCAL =====
 var D = {tar:{mps:0,mpf:0,pts:0,ptf:0,mi:0,me:0,cam:0,pin:'1234'}, mp:[], pt:[]};
 var _cargado = 0;
+var _rendered = false;
 
 function onCarga() {
   _cargado++;
-  if (_cargado >= 3) render();
+  if (_cargado >= 3 && !_rendered) { _rendered=true; pantalla='inicio'; render(); }
 }
+
+// Si en 5 segundos no conecta, mostrar igual
+setTimeout(function(){
+  if(!_rendered){ _rendered=true; pantalla='inicio'; render(); }
+}, 5000);
 
 // Escuchar cambios en tiempo real
 db.collection('mp').onSnapshot(function(s) {
