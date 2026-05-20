@@ -166,10 +166,10 @@ function chkPin(v){
 }
 
 // ===== OPERARIO =====
-var OP={paso:0,operacion:null,tipo:null,operario:''};
+var OP={paso:0,operacion:null,tipo:null,categoria:null,operario:''};
 var lotesOP=[{prod:'',cod:''}];
 var lotesSelOP=[];
-function resetOP(){OP={paso:0,operacion:null,tipo:null,operario:''};lotesOP=[{prod:'',cod:''}];lotesSelOP=[];}
+function resetOP(){OP={paso:0,operacion:null,tipo:null,categoria:null,operario:''};lotesOP=[{prod:'',cod:''}];lotesSelOP=[];}
 
 function renderOperario(){
   var stepHtml=OP.paso>0?'<div style="color:rgba(255,255,255,0.7);font-size:12px">Paso '+OP.paso+'</div>':'';
@@ -182,41 +182,13 @@ function renderOperario(){
 function opVolver(){
   if(OP.paso===0){ir('inicio');return;}
   OP.paso--;
-  if(OP.paso===0){OP.operacion=null;OP.tipo=null;}
-  else if(OP.paso===1){OP.tipo=null;}
-  renderOpPaso();
-}
-function stit(t){if(el('op-tit'))el('op-tit').textContent=t;}
-
-function renderOpPaso(){
-  var b=el('op-body');if(!b)return;
-  if(OP.paso===0){
-    stit('Nueva operacion');
-    var noms=['Victor','Vallejo','Enzo','Leandro','Aguirre','Quispe','Miguel','Diego'];
-    var opts='<option value="">-- Tu nombre --</option>';
-    for(var oi=0;oi<noms.length;oi++)opts+='<option value="'+noms[oi]+'"'+(OP.operario===noms[oi]?' selected':'')+'>'+noms[oi]+'</option>';
-    b.innerHTML='<div class="fg"><label>Operario *</label><select id="op-nom">'+opts+'</select></div>'+
-      '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que operacion?</div>'+
-      '<div style="font-size:13px;color:#888;margin-bottom:16px">Entra o sale mercaderia?</div>'+
-      '<div class="g2">'+
-      '<button class="opbtn" onclick="opOp(\'ingreso\')"><span style="font-size:34px">&#128229;</span><span style="font-size:15px;font-weight:700">Ingreso</span><span style="font-size:12px;color:#888">Entra al deposito</span></button>'+
-      '<button class="opbtn" onclick="opOp(\'egreso\')"><span style="font-size:34px">&#128228;</span><span style="font-size:15px;font-weight:700">Egreso</span><span style="font-size:12px;color:#888">Sale del deposito</span></button></div>';
-  }
-  else if(OP.paso===1){
-    stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');
-    b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+
-      '<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la categoria</div>'+
-      '<div class="g2">'+
-      '<button class="opbtn" onclick="opTipo(\'mp-seco\')"><span style="font-size:34px">&#128230;</span><span style="font-size:15px;font-weight:700">MP Seca</span></button>'+
-      '<button class="opbtn" onclick="opTipo(\'mp-frio\')"><span style="font-size:34px">&#10052;</span><span style="font-size:15px;font-weight:700">MP Fria</span></button>'+
-      '<button class="opbtn" onclick="opTipo(\'pt-seco\')"><span style="font-size:34px">&#9728;</span><span style="font-size:15px;font-weight:700">PT Seco</span></button>'+
-      '<button class="opbtn" onclick="opTipo(\'pt-frio\')"><span style="font-size:34px">&#128151;</span><span style="font-size:15px;font-weight:700">PT Frio</span></button></div>';
-  }
-  else if(OP.paso===2){renderFormOp();}
+  if(OP.paso===0){OP.operacion=null;OP.tipo=null;OP.categoria=null;}
+  else if(OP.paso===1){stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+'<div style="font-size:13px;color:#888;margin-bottom:16px">Materia prima o producto terminado?</div>'+'<div class="g2">'+'<button class="opbtn" onclick="opCategoria(\'mp\')"><span style="font-size:34px">&#128230;</span><span style="font-size:15px;font-weight:700">Materia Prima</span></button>'+'<button class="opbtn" onclick="opCategoria(\'pt\')"><span style="font-size:34px">&#128666;</span><span style="font-size:15px;font-weight:700">Producto Terminado</span></button></div>';} else if(OP.paso===2){stit('Condicion');b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Frio o seco?</div>'+'<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la condicion de almacenaje</div>'+'<div class="g2">'+'<button class="opbtn" onclick="opTipo(OP.categoria+\'-seco\')"><span style="font-size:34px">&#9728;</span><span style="font-size:15px;font-weight:700">Seco</span></button>'+'<button class="opbtn" onclick="opTipo(OP.categoria+\'-frio\')"><span style="font-size:34px">&#10052;</span><span style="font-size:15px;font-weight:700">Frio</span></button></div>';} else if(OP.paso===3){renderFormOp();}
 }
 
 function opOp(op){var nom=gv('op-nom').trim();if(!nom){alert('Selecciona tu nombre');return;}OP.operario=nom;OP.operacion=op;OP.paso=1;renderOpPaso();}
-function opTipo(t){OP.tipo=t;OP.paso=2;renderOpPaso();}
+function opCategoria(cat){OP.categoria=cat;OP.paso=2;renderOpPaso();}
+function opTipo(t){OP.tipo=t;OP.paso=3;renderOpPaso();}
 
 function renderFormOp(){
   var b=el('op-body');if(!b)return;
@@ -285,7 +257,7 @@ function renderLotesOp(){
   for(var i=0;i<lotesOP.length;i++){
     var l=lotesOP[i];
     html+='<div class="loterow">'+
-      '<input class="linp" placeholder="Producto" value="'+l.prod.replace(/"/g,'')+'" oninput="setLOP('+i+',this.value)">'+
+      '<input class="linp" placeholder="Producto (opcional)" value="'+l.prod.replace(/"/g,'')+'" oninput="setLOP('+i+',this.value)">'+
       '<input class="linp" placeholder="N de lote" value="'+l.cod.replace(/"/g,'')+'" oninput="setLOC('+i+',this.value)">'+
       '<label class="camb" title="Foto sticker">&#128247;<input type="file" accept="image/*" capture="environment" style="display:none" onchange="escanearLote(event,'+i+')"></label>'+
       (lotesOP.length>1?'<button class="delb" onclick="delLoteOp('+i+')">X</button>':'<span style="width:32px"></span>')+
@@ -357,7 +329,7 @@ function opGuardar(){
     var oc=gv('f-oc').trim(),fi=gv('f-fi');
     if(!oc||!fi){er('Completa la OC y la fecha');return;}
     var validos=[];
-    for(var i=0;i<lotesOP.length;i++){if(!lotesOP[i].prod.trim()||!lotesOP[i].cod.trim()){er('Completa producto y N de lote en todas las filas');return;}validos.push(lotesOP[i]);}
+    for(var i=0;i<lotesOP.length;i++){if(!lotesOP[i].cod.trim()){er('Completa el N de lote en todas las filas');return;}validos.push(lotesOP[i]);}
     if(!validos.length){er('Agrega al menos un lote');return;}
     var zona=gv('f-zona'),fila=gv('f-fila'),proms=[];
     for(var j=0;j<validos.length;j++){
