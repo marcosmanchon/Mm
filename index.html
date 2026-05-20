@@ -1,5 +1,37 @@
 <!DOCTYPE html>
-<html lang="es">
+<function renderOpPaso(){
+  var b=el('op-body');if(!b)return;
+  if(OP.paso===0){
+    stit('Nueva operacion');
+    var noms=['Victor','Vallejo','Enzo','Leandro','Aguirre','Quispe','Miguel','Diego'];
+    var opts='<option value="">-- Tu nombre --</option>';
+    for(var oi=0;oi<noms.length;oi++)opts+='<option value="'+noms[oi]+'"'+(OP.operario===noms[oi]?' selected':'')+'>'+noms[oi]+'</option>';
+    b.innerHTML='<div class="fg"><label>Operario *</label><select id="op-nom">'+opts+'</select></div>'+
+      '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que operacion?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Entra o sale mercaderia?</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opOp(\'ingreso\')"><span style="font-size:34px">&#128229;</span><span style="font-size:15px;font-weight:700">Ingreso</span><span style="font-size:12px;color:#888">Entra al deposito</span></button>'+
+      '<button class="opbtn" onclick="opOp(\'egreso\')"><span style="font-size:34px">&#128228;</span><span style="font-size:15px;font-weight:700">Egreso</span><span style="font-size:12px;color:#888">Sale del deposito</span></button></div>';
+  }
+  else if(OP.paso===1){
+    stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');
+    b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Materia prima o producto terminado?</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opCategoria(\'mp\')"><span style="font-size:34px">&#128230;</span><span style="font-size:15px;font-weight:700">Materia Prima</span></button>'+
+      '<button class="opbtn" onclick="opCategoria(\'pt\')"><span style="font-size:34px">&#128666;</span><span style="font-size:15px;font-weight:700">Producto Terminado</span></button></div>';
+  }
+  else if(OP.paso===2){
+    stit('Condicion de almacenaje');
+    b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Frio o seco?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la condicion</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-seco\')"><span style="font-size:34px">&#9728;</span><span style="font-size:15px;font-weight:700">Seco</span></button>'+
+      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-frio\')"><span style="font-size:34px">&#10052;</span><span style="font-size:15px;font-weight:700">Frio</span></button></div>';
+  }
+  else if(OP.paso===3){renderFormOp();}
+}
+html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
@@ -179,6 +211,7 @@ function renderOperario(){
     '<div class="bdy" id="op-body"></div></div>';
   renderOpPaso();
 }
+
 function opVolver(){
   if(OP.paso===0){ir('inicio');return;}
   OP.paso--;
