@@ -1,37 +1,5 @@
 <!DOCTYPE html>
-<function renderOpPaso(){
-  var b=el('op-body');if(!b)return;
-  if(OP.paso===0){
-    stit('Nueva operacion');
-    var noms=['Victor','Vallejo','Enzo','Leandro','Aguirre','Quispe','Miguel','Diego'];
-    var opts='<option value="">-- Tu nombre --</option>';
-    for(var oi=0;oi<noms.length;oi++)opts+='<option value="'+noms[oi]+'"'+(OP.operario===noms[oi]?' selected':'')+'>'+noms[oi]+'</option>';
-    b.innerHTML='<div class="fg"><label>Operario *</label><select id="op-nom">'+opts+'</select></div>'+
-      '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que operacion?</div>'+
-      '<div style="font-size:13px;color:#888;margin-bottom:16px">Entra o sale mercaderia?</div>'+
-      '<div class="g2">'+
-      '<button class="opbtn" onclick="opOp(\'ingreso\')"><span style="font-size:34px">&#128229;</span><span style="font-size:15px;font-weight:700">Ingreso</span><span style="font-size:12px;color:#888">Entra al deposito</span></button>'+
-      '<button class="opbtn" onclick="opOp(\'egreso\')"><span style="font-size:34px">&#128228;</span><span style="font-size:15px;font-weight:700">Egreso</span><span style="font-size:12px;color:#888">Sale del deposito</span></button></div>';
-  }
-  else if(OP.paso===1){
-    stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');
-    b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+
-      '<div style="font-size:13px;color:#888;margin-bottom:16px">Materia prima o producto terminado?</div>'+
-      '<div class="g2">'+
-      '<button class="opbtn" onclick="opCategoria(\'mp\')"><span style="font-size:34px">&#128230;</span><span style="font-size:15px;font-weight:700">Materia Prima</span></button>'+
-      '<button class="opbtn" onclick="opCategoria(\'pt\')"><span style="font-size:34px">&#128666;</span><span style="font-size:15px;font-weight:700">Producto Terminado</span></button></div>';
-  }
-  else if(OP.paso===2){
-    stit('Condicion de almacenaje');
-    b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Frio o seco?</div>'+
-      '<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la condicion</div>'+
-      '<div class="g2">'+
-      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-seco\')"><span style="font-size:34px">&#9728;</span><span style="font-size:15px;font-weight:700">Seco</span></button>'+
-      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-frio\')"><span style="font-size:34px">&#10052;</span><span style="font-size:15px;font-weight:700">Frio</span></button></div>';
-  }
-  else if(OP.paso===3){renderFormOp();}
-}
-html lang="es">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
@@ -88,60 +56,48 @@ input:focus,select:focus{border-color:#185FA5}
 .celok{background:#C8E6C9;text-align:center;color:#2E7D32;font-weight:700}
 .celn{background:#F5F5F5;text-align:center;color:#ccc}
 .celeg{background:#FFCDD2;text-align:center;color:#C62828;font-weight:700}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 </style>
 </head>
 <body>
 <div class="firma">&#169; Marcos Manchon</div>
 <div id="app"></div>
 <script>
-// ===== FIREBASE INIT =====
 firebase.initializeApp({
-  apiKey: "AIzaSyAApcG9x7UYYhs5vXaF8PITVOExTTaW_HM",
-  authDomain: "dibiagi-arcor.firebaseapp.com",
-  projectId: "dibiagi-arcor",
-  storageBucket: "dibiagi-arcor.firebasestorage.app",
-  messagingSenderId: "102096054534",
-  appId: "1:102096054534:web:c9306873ce37e2d1549687"
+  apiKey:"AIzaSyAApcG9x7UYYhs5vXaF8PITVOExTTaW_HM",
+  authDomain:"dibiagi-arcor.firebaseapp.com",
+  projectId:"dibiagi-arcor",
+  storageBucket:"dibiagi-arcor.firebasestorage.app",
+  messagingSenderId:"102096054534",
+  appId:"1:102096054534:web:c9306873ce37e2d1549687"
 });
 var db = firebase.firestore();
+var D = {tar:{mps:0,mpf:0,pts:0,ptf:0,mi:0,me:0,cam:0,pin:'1234'},mp:[],pt:[]};
+var _cargado = 0, _rendered = false;
 
-// ===== ESTADO LOCAL =====
-var D = {tar:{mps:0,mpf:0,pts:0,ptf:0,mi:0,me:0,cam:0,pin:'1234'}, mp:[], pt:[]};
-var _cargado = 0;
-var _rendered = false;
-
-function onCarga() {
+function onCarga(){
   _cargado++;
-  if (_cargado >= 3 && !_rendered) { _rendered=true; pantalla='inicio'; render(); }
+  if(_cargado>=3&&!_rendered){_rendered=true;pantalla='inicio';render();}
 }
+setTimeout(function(){if(!_rendered){_rendered=true;pantalla='inicio';render();}},5000);
 
-// Si en 5 segundos no conecta, mostrar igual
-setTimeout(function(){
-  if(!_rendered){ _rendered=true; pantalla='inicio'; render(); }
-}, 5000);
-
-// Escuchar cambios en tiempo real
-db.collection('mp').onSnapshot(function(s) {
-  D.mp = s.docs.map(function(d) { return Object.assign({_id:d.id}, d.data()); });
+db.collection('mp').onSnapshot(function(s){
+  D.mp=s.docs.map(function(d){return Object.assign({_id:d.id},d.data());});
   onCarga();
-  if (pantalla==='admin') renderTab();
-  if (pantalla==='operario' && OP.paso===2) renderFormOp();
-}, function() { onCarga(); });
+  if(pantalla==='admin')renderTab();
+  if(pantalla==='operario'&&OP.paso===3)renderFormOp();
+},function(){onCarga();});
 
-db.collection('pt').onSnapshot(function(s) {
-  D.pt = s.docs.map(function(d) { return Object.assign({_id:d.id}, d.data()); });
+db.collection('pt').onSnapshot(function(s){
+  D.pt=s.docs.map(function(d){return Object.assign({_id:d.id},d.data());});
   onCarga();
-  if (pantalla==='admin') renderTab();
-}, function() { onCarga(); });
+  if(pantalla==='admin')renderTab();
+},function(){onCarga();});
 
-db.doc('config/tarifas').onSnapshot(function(s) {
-  if (s.exists) D.tar = Object.assign({mps:0,mpf:0,pts:0,ptf:0,mi:0,me:0,cam:0,pin:'1234'}, s.data());
+db.doc('config/tarifas').onSnapshot(function(s){
+  if(s.exists)D.tar=Object.assign({mps:0,mpf:0,pts:0,ptf:0,mi:0,me:0,cam:0,pin:'1234'},s.data());
   onCarga();
-  if (pantalla==='admin' && tabAdm==='tar') renderTab();
-}, function() { onCarga(); });
+},function(){onCarga();});
 
-// ===== HELPERS =====
 function uid(){return Date.now()+Math.random().toString(36).slice(2);}
 function hoy(){return new Date().toISOString().slice(0,10);}
 function mes0(){return new Date().toISOString().slice(0,7);}
@@ -154,7 +110,6 @@ function stPT(tipo){
   return Math.max(0,tot);
 }
 
-// ===== NAVEGACION =====
 var pantalla='cargando';
 function ir(p){pantalla=p;render();}
 function render(){
@@ -172,7 +127,7 @@ function htmlInicio(){
   return '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;background:#F4F4F0">'+
     '<div style="width:64px;height:64px;background:#185FA5;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:700">MM</div>'+
     '<div style="text-align:center;margin-bottom:4px"><div style="font-size:22px;font-weight:700">MM</div><div style="font-size:13px;color:#888;margin-top:4px">Deposito Dibiagi</div></div>'+
-    '<div style="font-size:12px;color:#4CAF50;font-weight:600"><span class="dot" style="background:#4CAF50"></span>Conectado a base de datos</div>'+
+    '<div style="font-size:12px;color:#4CAF50;font-weight:600">&#9679; Conectado a base de datos</div>'+
     '<button onclick="ir(\'operario\')" style="width:100%;max-width:340px;padding:18px;border-radius:12px;border:2px solid #ddd;background:#fff;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left">'+
     '<div style="width:44px;height:44px;border-radius:10px;background:#EEF4FF;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">&#128119;</div>'+
     '<div><div style="font-size:16px;font-weight:700;color:#185FA5">Operario</div><div style="font-size:12px;color:#888;margin-top:2px">Registrar ingresos y egresos</div></div></button>'+
@@ -197,11 +152,10 @@ function chkPin(v){
   else if(v.length>=4){if(el('pin-err'))el('pin-err').style.display='block';if(el('pin-inp'))el('pin-inp').value='';}
 }
 
-// ===== OPERARIO =====
-var OP={paso:0,operacion:null,tipo:null,categoria:null,operario:''};
+var OP={paso:0,operacion:null,categoria:null,tipo:null,operario:''};
 var lotesOP=[{prod:'',cod:''}];
 var lotesSelOP=[];
-function resetOP(){OP={paso:0,operacion:null,tipo:null,categoria:null,operario:''};lotesOP=[{prod:'',cod:''}];lotesSelOP=[];}
+function resetOP(){OP={paso:0,operacion:null,categoria:null,tipo:null,operario:''};lotesOP=[{prod:'',cod:''}];lotesSelOP=[];}
 
 function renderOperario(){
   var stepHtml=OP.paso>0?'<div style="color:rgba(255,255,255,0.7);font-size:12px">Paso '+OP.paso+'</div>':'';
@@ -215,11 +169,73 @@ function renderOperario(){
 function opVolver(){
   if(OP.paso===0){ir('inicio');return;}
   OP.paso--;
-  if(OP.paso===0){OP.operacion=null;OP.tipo=null;OP.categoria=null;}
-  else if(OP.paso===1){stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+'<div style="font-size:13px;color:#888;margin-bottom:16px">Materia prima o producto terminado?</div>'+'<div class="g2">'+'<button class="opbtn" onclick="opCategoria(\'mp\')"><span style="font-size:34px">&#128230;</span><span style="font-size:15px;font-weight:700">Materia Prima</span></button>'+'<button class="opbtn" onclick="opCategoria(\'pt\')"><span style="font-size:34px">&#128666;</span><span style="font-size:15px;font-weight:700">Producto Terminado</span></button></div>';} else if(OP.paso===2){stit('Condicion');b.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Frio o seco?</div>'+'<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la condicion de almacenaje</div>'+'<div class="g2">'+'<button class="opbtn" onclick="opTipo(OP.categoria+\'-seco\')"><span style="font-size:34px">&#9728;</span><span style="font-size:15px;font-weight:700">Seco</span></button>'+'<button class="opbtn" onclick="opTipo(OP.categoria+\'-frio\')"><span style="font-size:34px">&#10052;</span><span style="font-size:15px;font-weight:700">Frio</span></button></div>';} else if(OP.paso===3){renderFormOp();}
+  if(OP.paso===0){OP.operacion=null;OP.categoria=null;OP.tipo=null;}
+  else if(OP.paso===1){OP.categoria=null;OP.tipo=null;}
+  else if(OP.paso===2){OP.tipo=null;}
+  renderOpPaso();
+}
+function stit(t){if(el('op-tit'))el('op-tit').textContent=t;}
+
+function renderOpPaso(){
+  var b=el('op-body');if(!b)return;
+  var html='';
+  if(OP.paso===0){
+    stit('Nueva operacion');
+    var noms=['Victor','Vallejo','Enzo','Leandro','Aguirre','Quispe','Miguel','Diego'];
+    var opts='<option value="">-- Tu nombre --</option>';
+    for(var oi=0;oi<noms.length;oi++)opts+='<option value="'+noms[oi]+'"'+(OP.operario===noms[oi]?' selected':'')+'>'+noms[oi]+'</option>';
+    html='<div class="fg"><label>Operario *</label><select id="op-nom">'+opts+'</select></div>'+
+      '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que operacion?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Entra o sale mercaderia?</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opOp(\'ingreso\')">'+
+        '<span style="font-size:34px">&#128229;</span>'+
+        '<span style="font-size:15px;font-weight:700">Ingreso</span>'+
+        '<span style="font-size:12px;color:#888">Entra al deposito</span>'+
+      '</button>'+
+      '<button class="opbtn" onclick="opOp(\'egreso\')">'+
+        '<span style="font-size:34px">&#128228;</span>'+
+        '<span style="font-size:15px;font-weight:700">Egreso</span>'+
+        '<span style="font-size:12px;color:#888">Sale del deposito</span>'+
+      '</button></div>';
+  }
+  else if(OP.paso===1){
+    stit(OP.operacion==='ingreso'?'Tipo de ingreso':'Tipo de egreso');
+    html='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Que tipo?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Materia prima o producto terminado?</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opCategoria(\'mp\')">'+
+        '<span style="font-size:34px">&#128230;</span>'+
+        '<span style="font-size:15px;font-weight:700">Materia Prima</span>'+
+      '</button>'+
+      '<button class="opbtn" onclick="opCategoria(\'pt\')">'+
+        '<span style="font-size:34px">&#128666;</span>'+
+        '<span style="font-size:15px;font-weight:700">Producto Terminado</span>'+
+      '</button></div>';
+  }
+  else if(OP.paso===2){
+    stit('Condicion de almacenaje');
+    html='<div style="font-size:18px;font-weight:700;margin-bottom:6px">Frio o seco?</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:16px">Selecciona la condicion</div>'+
+      '<div class="g2">'+
+      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-seco\')">'+
+        '<span style="font-size:34px">&#9728;</span>'+
+        '<span style="font-size:15px;font-weight:700">Seco</span>'+
+      '</button>'+
+      '<button class="opbtn" onclick="opTipo(OP.categoria+\'-frio\')">'+
+        '<span style="font-size:34px">&#10052;</span>'+
+        '<span style="font-size:15px;font-weight:700">Frio</span>'+
+      '</button></div>';
+  }
+  else if(OP.paso===3){renderFormOp();return;}
+  b.innerHTML=html;
 }
 
-function opOp(op){var nom=gv('op-nom').trim();if(!nom){alert('Selecciona tu nombre');return;}OP.operario=nom;OP.operacion=op;OP.paso=1;renderOpPaso();}
+function opOp(op){
+  var nom=gv('op-nom').trim();
+  if(!nom){alert('Selecciona tu nombre');return;}
+  OP.operario=nom;OP.operacion=op;OP.paso=1;renderOpPaso();
+}
 function opCategoria(cat){OP.categoria=cat;OP.paso=2;renderOpPaso();}
 function opTipo(t){OP.tipo=t;OP.paso=3;renderOpPaso();}
 
@@ -291,7 +307,7 @@ function renderLotesOp(){
     var l=lotesOP[i];
     html+='<div class="loterow">'+
       '<input class="linp" placeholder="Producto (opcional)" value="'+l.prod.replace(/"/g,'')+'" oninput="setLOP('+i+',this.value)">'+
-      '<input class="linp" placeholder="N de lote" value="'+l.cod.replace(/"/g,'')+'" oninput="setLOC('+i+',this.value)">'+
+      '<input class="linp" placeholder="N de lote *" value="'+l.cod.replace(/"/g,'')+'" oninput="setLOC('+i+',this.value)">'+
       '<label class="camb" title="Foto sticker">&#128247;<input type="file" accept="image/*" capture="environment" style="display:none" onchange="escanearLote(event,'+i+')"></label>'+
       (lotesOP.length>1?'<button class="delb" onclick="delLoteOp('+i+')">X</button>':'<span style="width:32px"></span>')+
       '</div>';
@@ -340,7 +356,7 @@ function cargarLotes(tipo){
     html+='<div id="lc-'+r2._id+'" onclick="togLote(\''+r2._id+'\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border-radius:9px;margin-bottom:8px;border:2px solid #eee;cursor:pointer">'+
       '<div id="lchk-'+r2._id+'" style="width:24px;height:24px;border-radius:6px;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff"></div>'+
       '<div><div style="font-weight:700;font-size:14px">'+r2.oc+'-'+r2.cod+'</div>'+
-      '<div style="font-size:13px;color:#555">'+r2.nom+'</div>'+
+      '<div style="font-size:13px;color:#555">'+(r2.nom||r2.prod||'-')+'</div>'+
       '<div style="font-size:12px;color:#888">Ingreso: '+r2.fi+'</div></div></div>';
   }
   if(list2)list2.innerHTML=html;
@@ -408,7 +424,6 @@ function opExito(msg){
   stit('Listo!');
 }
 
-// ===== ADMIN =====
 var tabAdm='res';
 function renderAdmin(){
   el('app').innerHTML='<div style="min-height:100vh;background:#F4F4F0;display:flex;flex-direction:column">'+
@@ -537,7 +552,7 @@ function htmlMov(){
     if(fI||fO)items.push('PT Frio: '+(fI?'+'+fI:'')+(fO?' -'+fO:'')+' pos.');
     var chips='';for(var it=0;it<items.length;it++)chips+='<span style="background:#EEF4FF;border-radius:20px;padding:4px 10px;font-size:12px;color:#185FA5;font-weight:600">'+items[it]+'</span> ';
     var allMP=mpSI.concat(mpSO).concat(mpFI).concat(mpFO),detMP='';
-    for(var rm=0;rm<allMP.length;rm++){var rx=allMP[rm],isIn=mpSI.indexOf(rx)>=0||mpFI.indexOf(rx)>=0;detMP+='<div class="mrow '+(isIn?'min':'mout')+'"><span style="font-size:16px">'+(isIn?'&#128229;':'&#128228;')+'</span><div style="flex:1"><div style="font-size:13px;font-weight:600">'+rx.oc+'-'+rx.cod+'</div><div style="font-size:12px;color:#555">'+rx.nom+(rx.operario?' - '+rx.operario:'')+'</div></div><span style="font-weight:700;font-size:12px;color:'+(isIn?'#2E7D32':'#C62828')+'">'+(isIn?'Ingreso':'Egreso')+'</span></div>';}
+    for(var rm=0;rm<allMP.length;rm++){var rx=allMP[rm],isIn=mpSI.indexOf(rx)>=0||mpFI.indexOf(rx)>=0;detMP+='<div class="mrow '+(isIn?'min':'mout')+'"><span style="font-size:16px">'+(isIn?'&#128229;':'&#128228;')+'</span><div style="flex:1"><div style="font-size:13px;font-weight:600">'+rx.oc+'-'+rx.cod+'</div><div style="font-size:12px;color:#555">'+(rx.nom||rx.prod||'-')+(rx.operario?' - '+rx.operario:'')+'</div></div><span style="font-weight:700;font-size:12px;color:'+(isIn?'#2E7D32':'#C62828')+'">'+(isIn?'Ingreso':'Egreso')+'</span></div>';}
     var allPT=ptSIl.concat(ptSOl).concat(ptFIl).concat(ptFOl),detPT='';
     for(var pp=0;pp<allPT.length;pp++){var mv6=allPT[pp];detPT+='<div class="mrow '+(mv6.dir==='in'?'min':'mout')+'"><span style="font-size:16px">'+(mv6.dir==='in'?'&#128229;':'&#128228;')+'</span><div style="flex:1"><div style="font-size:13px;font-weight:600">'+mv6.pal+' pos. '+(mv6.tipo==='frio'?'Frio':'Seco')+'</div><div style="font-size:11px;color:#555">Remito: '+(mv6.remito||'-')+(mv6.operario?' - '+mv6.operario:'')+'</div></div><span style="font-weight:700;font-size:13px;color:'+(mv6.dir==='in'?'#2E7D32':'#C62828')+'">'+(mv6.dir==='in'?'+':'-')+mv6.pal+'</span></div>';}
     diasHtml+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700;font-size:15px">'+day2.fd+'</div><div style="font-size:11px;color:#888">'+(day2.ptDia.length+day2.mpIn.length+day2.mpOut.length)+' mov.</div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+chips+'</div>'+detMP+detPT+'</div>';
@@ -551,7 +566,7 @@ function htmlStk(b){
   var mpS=[],mpF=[];
   for(var i=0;i<D.mp.length;i++){if(D.mp[i].tipo==='seco'&&!D.mp[i].fe)mpS.push(D.mp[i]);else if(D.mp[i].tipo==='frio'&&!D.mp[i].fe)mpF.push(D.mp[i]);}
   var stS2=stPT('seco'),stF2=stPT('frio');
-  function lC(r){return '<div style="background:#F8F8F6;border-radius:8px;padding:12px 14px;margin-bottom:10px;border:1px solid #eee"><div style="font-weight:700;font-size:13px;margin-bottom:2px">'+r.oc+'-'+r.cod+'</div><div style="font-size:12px;color:#555;margin-bottom:4px">'+r.nom+'</div><div style="font-size:12px;color:#888;margin-bottom:8px">Ingreso: '+r.fi+(r.zona?' - '+r.zona:'')+(r.fila?' - Fila '+r.fila:'')+(r.operario?' - '+r.operario:'')+'</div><div style="display:flex;gap:8px"><button class="btn" style="font-size:12px;padding:6px 12px" onclick="stkEgr(\''+r._id+'\')">Egresar</button><button class="btn btnr" style="font-size:12px;padding:6px 12px" onclick="stkElMP(\''+r._id+'\')">Eliminar</button></div></div>';}
+  function lC(r){return '<div style="background:#F8F8F6;border-radius:8px;padding:12px 14px;margin-bottom:10px;border:1px solid #eee"><div style="font-weight:700;font-size:13px;margin-bottom:2px">'+r.oc+'-'+r.cod+'</div><div style="font-size:12px;color:#555;margin-bottom:4px">'+(r.nom||r.prod||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:8px">Ingreso: '+r.fi+(r.zona?' - '+r.zona:'')+(r.fila?' - Fila '+r.fila:'')+(r.operario?' - '+r.operario:'')+'</div><div style="display:flex;gap:8px"><button class="btn" style="font-size:12px;padding:6px 12px" onclick="stkEgr(\''+r._id+'\')">Egresar</button><button class="btn btnr" style="font-size:12px;padding:6px 12px" onclick="stkElMP(\''+r._id+'\')">Eliminar</button></div></div>';}
   function ptR(tipo){var movs=[];for(var i2=0;i2<D.pt.length;i2++){if(D.pt[i2].tipo===tipo)movs.push(D.pt[i2]);}movs.sort(function(a,b){return b.fecha<a.fecha?-1:1;});if(movs.length>15)movs=movs.slice(0,15);var h2='';for(var j=0;j<movs.length;j++){var mv7=movs[j];h2+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px"><div><span style="font-weight:600;color:'+(mv7.dir==='in'?'#2E7D32':'#C62828')+'">'+(mv7.dir==='in'?'Ingreso':'Egreso')+'</span><span style="color:#888;margin-left:8px">'+mv7.pal+' pos. - '+mv7.fecha+'</span></div><button class="btn btnr" style="font-size:11px;padding:3px 8px" onclick="stkElPT(\''+mv7._id+'\')">X</button></div>';}return h2||'<div class="empty">Sin movimientos</div>';}
   b.innerHTML='<div class="card"><div class="tit">&#128230; MP Seca - '+mpS.length+' lotes</div>'+(mpS.length?mpS.map(lC).join(''):'<div class="empty">Sin lotes activos</div>')+'</div>'+
     '<div class="card"><div class="tit">&#10052; MP Fria - '+mpF.length+' lotes</div>'+(mpF.length?mpF.map(lC).join(''):'<div class="empty">Sin lotes activos</div>')+'</div>'+
@@ -584,7 +599,7 @@ function htmlPla(){
       for(var li=0;li<lotes2.length;li++){
         var r2=lotes2[li],celdas='';
         for(var cd=0;cd<diasCab.length;cd++){var fdX=diasCab[cd],diaX=new Date(fdX),fiX=new Date(r2.fi),feX=r2.fe?new Date(r2.fe):null;if(diaX<fiX)celdas+='<td class="celn">-</td>';else if(fdX===r2.fe)celdas+='<td class="celeg">&#8617;</td>';else if(feX&&diaX>feX)celdas+='<td class="celn">-</td>';else celdas+='<td class="celok">&#10003;</td>';}
-        rowsMP+='<tr><td class="plalote"><b>'+r2.oc+'-'+r2.cod+'</b><br><span style="font-size:11px;color:#555">'+r2.nom+'</span><br><span style="font-size:10px;color:#aaa">'+(r2.tipo==='frio'?'Fria':'Seca')+'</span></td>'+celdas+'<td style="font-size:11px;color:#888">'+(r2.operario||'-')+'</td></tr>';
+        rowsMP+='<tr><td class="plalote"><b>'+r2.oc+'-'+r2.cod+'</b><br><span style="font-size:11px;color:#555">'+(r2.nom||r2.prod||'-')+'</span><br><span style="font-size:10px;color:#aaa">'+(r2.tipo==='frio'?'Fria':'Seca')+'</span></td>'+celdas+'<td style="font-size:11px;color:#888">'+(r2.operario||'-')+'</td></tr>';
       }
     }
   }else{rowsMP='<tr><td colspan="'+(diasCab.length+2)+'" style="text-align:center;padding:16px;color:#bbb">Sin lotes este mes</td></tr>';}
@@ -618,7 +633,7 @@ function exportPlaMP(){
     for(var li=0;li<lotes2.length;li++){
       var r2=lotes2[li],celdas='';
       for(var cd=0;cd<diasCab.length;cd++){var fdX=diasCab[cd],diaX=new Date(fdX),fiX=new Date(r2.fi),feX=r2.fe?new Date(r2.fe):null;if(diaX<fiX)celdas+='<td>-</td>';else if(fdX===r2.fe)celdas+='<td style="background:#FFCDD2">Egreso</td>';else if(feX&&diaX>feX)celdas+='<td>-</td>';else celdas+='<td style="background:#C8E6C9">Activo</td>';}
-      rows+='<tr><td>'+r2.oc+'-'+r2.cod+'</td><td>'+r2.nom+'</td><td>'+(r2.tipo==='frio'?'Fria':'Seca')+'</td>'+celdas+'</tr>';
+      rows+='<tr><td>'+r2.oc+'-'+r2.cod+'</td><td>'+(r2.nom||r2.prod||'-')+'</td><td>'+(r2.tipo==='frio'?'Fria':'Seca')+'</td>'+celdas+'</tr>';
     }
   }
   exportExcel('Planilla_MP_'+mes,'<table border="1"><thead><tr><th>OC-Lote</th><th>Producto</th><th>Tipo</th>'+thD+'</tr></thead><tbody>'+rows+'</tbody></table>');
