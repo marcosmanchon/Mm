@@ -172,6 +172,7 @@ function opVolver(){
   if(OP.paso===0){OP.operacion=null;OP.categoria=null;OP.tipo=null;}
   else if(OP.paso===1){OP.categoria=null;OP.tipo=null;}
   else if(OP.paso===2){OP.tipo=null;}
+  if(OP.categoria==='pt'&&OP.paso===2){OP.categoria=null;OP.paso=1;}
   renderOpPaso();
 }
 function stit(t){if(el('op-tit'))el('op-tit').textContent=t;}
@@ -236,14 +237,14 @@ function opOp(op){
   if(!nom){alert('Selecciona tu nombre');return;}
   OP.operario=nom;OP.operacion=op;OP.paso=1;renderOpPaso();
 }
-function opCategoria(cat){OP.categoria=cat;OP.paso=2;renderOpPaso();}
+function opCategoria(cat){OP.categoria=cat;if(cat==='pt'){OP.tipo='pt';OP.paso=2;renderFormOp();}else{OP.paso=2;renderOpPaso();}}
 function opTipo(t){OP.tipo=t;OP.paso=3;renderOpPaso();}
 
 function renderFormOp(){
   var b=el('op-body');if(!b)return;
   var esMp=OP.tipo.startsWith('mp'),esPt=OP.tipo.startsWith('pt');
   var esFrio=OP.tipo.endsWith('frio'),tipoMer=esFrio?'frio':'seco';
-  var tipoLabel=OP.tipo==='mp-seco'?'MP Seca':OP.tipo==='mp-frio'?'MP Fria':OP.tipo==='pt-seco'?'PT Seco':'PT Frio';
+  var tipoLabel=OP.tipo==='mp-seco'?'MP Seca':OP.tipo==='mp-frio'?'MP Fria':'Producto Terminado';
   stit((OP.operacion==='ingreso'?'Ingreso':'Egreso')+' '+tipoLabel);
   var html='<div class="card"><div style="font-size:16px;font-weight:700;margin-bottom:16px">'+(OP.operacion==='ingreso'?'Ingreso':'Egreso')+' '+tipoLabel+'</div>';
 
@@ -274,24 +275,36 @@ function renderFormOp(){
     lotesSelOP=[];
   }
   else if(esPt&&OP.operacion==='ingreso'){
-    var stB=stPT(tipoMer);
-    html+='<div class="infobox"><b>Stock '+tipoLabel+':</b> <span style="color:#185FA5;font-weight:700">'+stB+' posiciones</span></div>'+
+    var stS=stPT('seco'),stF=stPT('frio');
+    html+='<div class="infobox">'+
+      '<div style="display:flex;justify-content:space-between"><span><b>Stock PT Seco:</b> <span style="color:#185FA5;font-weight:700">'+stS+' pos.</span></span>'+
+      '<span><b>Stock PT Frio:</b> <span style="color:#185FA5;font-weight:700">'+stF+' pos.</span></span></div></div>'+
       '<div class="g2"><div class="fg"><label>Remito *</label><input id="f-rem" placeholder="REM-001"></div>'+
       '<div class="fg"><label>Fecha *</label><input id="f-fi" type="date" value="'+hoy()+'"></div></div>'+
       '<div class="fg"><label>Transporte</label><input id="f-tra" placeholder="Transporte..."></div>'+
-      '<div class="fg"><label>Posiciones *</label><input id="f-pal" type="number" min="1" placeholder="0"></div>'+
+      '<div class="card" style="background:#F8F8F6;border:1px solid #eee"><div class="tit">Posiciones a ingresar</div>'+
+      '<div class="g2">'+
+      '<div class="fg"><label>&#9728; PT Seco</label><input id="f-pal-s" type="number" min="0" value="0" placeholder="0"></div>'+
+      '<div class="fg"><label>&#10052; PT Frio</label><input id="f-pal-f" type="number" min="0" value="0" placeholder="0"></div>'+
+      '</div></div>'+
       '<div class="g2"><div class="fg"><label>Zona</label><select id="f-zona"><option value="">Sin asignar</option><option value="almacenaje">Almacenaje</option><option value="armado">Armado de pedidos</option></select></div>'+
       '<div class="fg"><label>Fila</label><input id="f-fila" placeholder="Ej: F3, A1"></div></div>';
   }
   else if(esPt&&OP.operacion==='egreso'){
-    var stC=stPT(tipoMer);
-    html+='<div class="infobox"><b>Stock '+tipoLabel+':</b> <span style="color:#185FA5;font-weight:700">'+stC+' posiciones</span></div>'+
-      '<div class="g2"><div class="fg"><label>Fecha *</label><input id="f-fe" type="date" value="'+hoy()+'"></div>'+
-      '<div class="fg"><label>Posiciones *</label><input id="f-pal" type="number" min="1" placeholder="0"></div></div>'+
+    var stS2=stPT('seco'),stF2=stPT('frio');
+    html+='<div class="infobox">'+
+      '<div style="display:flex;justify-content:space-between"><span><b>Stock PT Seco:</b> <span style="color:#185FA5;font-weight:700">'+stS2+' pos.</span></span>'+
+      '<span><b>Stock PT Frio:</b> <span style="color:#185FA5;font-weight:700">'+stF2+' pos.</span></span></div></div>'+
       '<div class="g2"><div class="fg"><label>Remito salida *</label><input id="f-rs" placeholder="RS-001"></div>'+
-      '<div class="fg"><label>Ord. entrega *</label><input id="f-oe" placeholder="OE-001"></div></div>'+
-      '<div class="g2"><div class="fg"><label>Ord. compra *</label><input id="f-oc" placeholder="OC-001"></div>'+
-      '<div class="fg"><label>Transporte</label><input id="f-tra" placeholder="Transporte..."></div></div>';
+      '<div class="fg"><label>Fecha *</label><input id="f-fe" type="date" value="'+hoy()+'"></div></div>'+
+      '<div class="g2"><div class="fg"><label>Ord. entrega *</label><input id="f-oe" placeholder="OE-001"></div>'+
+      '<div class="fg"><label>Ord. compra *</label><input id="f-oc" placeholder="OC-001"></div></div>'+
+      '<div class="fg"><label>Transporte</label><input id="f-tra" placeholder="Transporte..."></div>'+
+      '<div class="card" style="background:#F8F8F6;border:1px solid #eee"><div class="tit">Posiciones a egresar</div>'+
+      '<div class="g2">'+
+      '<div class="fg"><label>&#9728; PT Seco</label><input id="f-pal-s" type="number" min="0" value="0" placeholder="0"></div>'+
+      '<div class="fg"><label>&#10052; PT Frio</label><input id="f-pal-f" type="number" min="0" value="0" placeholder="0"></div>'+
+      '</div></div>';
   }
 
   html+='<div id="op-err" class="errbox" style="display:none"></div>'+
@@ -400,17 +413,25 @@ function opGuardar(){
     Promise.all(proms2).then(function(){opExito(lotesSelOP.length+' lote(s) egresados');}).catch(function(e){er('Error: '+e.message);});
   }
   else if(esPt&&OP.operacion==='ingreso'){
-    var rem=gv('f-rem').trim(),fi2=gv('f-fi'),pal=parseInt(gv('f-pal'))||0;
-    if(!rem||!fi2||pal<1){er('Completa remito, fecha y posiciones');return;}
-    db.collection('pt').add({fecha:fi2,tipo:tipoMer,dir:'in',pal:pal,remito:rem,tra:gv('f-tra'),zona:gv('f-zona'),fila:gv('f-fila'),operario:OP.operario,oe:'',oc:'',ts:new Date().toISOString()})
-    .then(function(){opExito('Ingreso de '+pal+' posiciones PT '+tipoMer);}).catch(function(e){er('Error: '+e.message);});
+    var rem=gv('f-rem').trim(),fi2=gv('f-fi'),palS=parseInt(gv('f-pal-s'))||0,palF=parseInt(gv('f-pal-f'))||0;
+    if(!rem||!fi2){er('Completa remito y fecha');return;}
+    if(palS<1&&palF<1){er('Ingresa al menos una posicion (seco o frio)');return;}
+    var prPT=[],msg='';
+    if(palS>0){prPT.push(db.collection('pt').add({fecha:fi2,tipo:'seco',dir:'in',pal:palS,remito:rem,tra:gv('f-tra'),zona:gv('f-zona'),fila:gv('f-fila'),operario:OP.operario,oe:'',oc:'',ts:new Date().toISOString()}));msg+=palS+' PT Seco ';}
+    if(palF>0){prPT.push(db.collection('pt').add({fecha:fi2,tipo:'frio',dir:'in',pal:palF,remito:rem,tra:gv('f-tra'),zona:gv('f-zona'),fila:gv('f-fila'),operario:OP.operario,oe:'',oc:'',ts:new Date().toISOString()}));msg+=palF+' PT Frio ';}
+    Promise.all(prPT).then(function(){opExito('Ingresadas: '+msg.trim());}).catch(function(e){er('Error: '+e.message);});
   }
   else if(esPt&&OP.operacion==='egreso'){
-    var rs=gv('f-rs').trim(),oe=gv('f-oe').trim(),oc2=gv('f-oc').trim(),fe2=gv('f-fe'),pal2=parseInt(gv('f-pal'))||0;
-    if(!rs||!oe||!oc2||!fe2||pal2<1){er('Completa todos los campos');return;}
-    if(pal2>stPT(tipoMer)){er('Posiciones insuficientes. Stock: '+stPT(tipoMer));return;}
-    db.collection('pt').add({fecha:fe2,tipo:tipoMer,dir:'out',pal:pal2,remito:rs,oe:oe,oc:oc2,tra:gv('f-tra'),operario:OP.operario,ts:new Date().toISOString()})
-    .then(function(){opExito('Egreso de '+pal2+' posiciones PT '+tipoMer);}).catch(function(e){er('Error: '+e.message);});
+    var rs=gv('f-rs').trim(),oe=gv('f-oe').trim(),oc2=gv('f-oc').trim(),fe2=gv('f-fe');
+    var palS2=parseInt(gv('f-pal-s'))||0,palF2=parseInt(gv('f-pal-f'))||0;
+    if(!rs||!oe||!oc2||!fe2){er('Completa remito, OE, OC y fecha');return;}
+    if(palS2<1&&palF2<1){er('Ingresa al menos una posicion (seco o frio)');return;}
+    if(palS2>stPT('seco')){er('PT Seco insuficiente. Stock: '+stPT('seco'));return;}
+    if(palF2>stPT('frio')){er('PT Frio insuficiente. Stock: '+stPT('frio'));return;}
+    var prPT2=[],msg2='';
+    if(palS2>0){prPT2.push(db.collection('pt').add({fecha:fe2,tipo:'seco',dir:'out',pal:palS2,remito:rs,oe:oe,oc:oc2,tra:gv('f-tra'),operario:OP.operario,ts:new Date().toISOString()}));msg2+=palS2+' PT Seco ';}
+    if(palF2>0){prPT2.push(db.collection('pt').add({fecha:fe2,tipo:'frio',dir:'out',pal:palF2,remito:rs,oe:oe,oc:oc2,tra:gv('f-tra'),operario:OP.operario,ts:new Date().toISOString()}));msg2+=palF2+' PT Frio ';}
+    Promise.all(prPT2).then(function(){opExito('Egresadas: '+msg2.trim());}).catch(function(e){er('Error: '+e.message);});
   }
 }
 
